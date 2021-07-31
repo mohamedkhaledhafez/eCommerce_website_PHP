@@ -1,0 +1,10 @@
+Simple Analysis : 
+
+Pages & Features : 
+
+- Settings
+- Dashboard
+- Statistics
+- Logs
+- Users 
+- Comments
