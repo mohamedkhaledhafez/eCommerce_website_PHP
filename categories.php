@@ -3,7 +3,7 @@
     <h1 class="text-center"><?php echo str_replace('-', ' ', $_GET['pagename']) ?></h1>
     <div class="row">
         <?php 
-            foreach (getItems($_GET['pageid']) as $item) {
+            foreach (getItems('Cat_ID' ,$_GET['pageid']) as $item) {
                 echo '<div class="col-sm-6 col-md-3">';
                     echo '<div class="thumbnail item-box">';
                         echo '<span class="price">' . $item['Price'] . '</span>';

@@ -194,6 +194,10 @@ h1 {
   border-radius: 3px;
 }
 
+.panel:last-child {
+  margin-bottom: 40px;
+}
+
 .panel-heading {
   color: #f1f1f1;
   background-color: rgb(56, 145, 204);

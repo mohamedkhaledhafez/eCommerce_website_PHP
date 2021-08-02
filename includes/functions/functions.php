@@ -25,13 +25,13 @@
         ** [Function To Get items From Database 
         */
 
-        function getItems($CatID) {
+        function getItems($where, $value) {
             
             global $con;
 
-            $getItem = $con->prepare("SELECT * FROM items WHERE Cat_ID = ? ORDER BY item_ID DESC");
+            $getItem = $con->prepare("SELECT * FROM items WHERE $where = ? ORDER BY item_ID DESC");
 
-            $getItem->execute(array($CatID));
+            $getItem->execute(array($value));
             
             $items = $getItem->fetchAll();
 

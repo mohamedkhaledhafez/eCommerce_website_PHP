@@ -7,6 +7,7 @@
     include 'admin/connect.php';
 
     $sessionUser = '';
+    
     if (isset($_SESSION['user'])) {
         $sessionUser = $_SESSION['user'];
     }

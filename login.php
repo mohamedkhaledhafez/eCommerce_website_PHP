@@ -65,7 +65,7 @@
     <!-- End Login Form -->
 
     <!-- Start SignUp Form -->
-    <form class="signup" action="">
+    <form class="signup" action="<?php echo $_SERVER['PHP_SELF'] ?>" method="POST">
     <div class="input-container">
         <input 
               class="form-control" 
