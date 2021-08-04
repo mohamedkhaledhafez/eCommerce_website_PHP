@@ -127,7 +127,8 @@ h1 {
 
 /*/ ////////////////////////////////////////////////////// Start Login Page //////////////////////////////////////////////////*/
 
-.login-page form {
+.login-page form,
+.the-errors {
   max-width: 410px;
   margin: auto;
 }
@@ -163,6 +164,23 @@ h1 {
 .login-page .signup {
   display: none;
 }
+
+.the-errors .msg {
+  padding: 10px;
+  text-align: left;
+  border-left: 5px solid #cd6858;
+  border-right: 1px solid #e0e0e0;
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #fff;
+  margin-bottom: 8px;
+  color: #919191;
+}
+
+.the-errors .error {
+  border-left: 5px solid #cd6858;
+}
+
 
 /*/ ////////////////////////////////////////////////////// End Login Page //////////////////////////////////////////////////*/
 

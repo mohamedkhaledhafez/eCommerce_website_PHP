@@ -46,7 +46,7 @@
             <a class="navbar-brand" href="index.php">Home Page</a>
 
             <div class="collapse navbar-collapse" id="app-nav">
-                <ul class="nav navbar-nav navbar-right">
+                <ul class="nav navbar-nav navbar">
                     <?php 
                             $categories = getCat();
 
