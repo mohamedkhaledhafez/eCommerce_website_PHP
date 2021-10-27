@@ -4,30 +4,44 @@
     <head>
         <meta charset="UTF-8">
         <title><?php echoTitle(); ?> </title>
-        <link rel="stylesheet" href="<?php echo $css ?>bootstrap.min.css" /> 
         <link rel="stylesheet" href="<?php echo $css ?>font-awesome.min.css" /> 
         <link rel="stylesheet" href="<?php echo $css ?>jquery-ui.css" /> 
         <link rel="stylesheet" href="<?php echo $css ?>jquery.selectBoxIt.css" /> 
         <link rel="stylesheet" href="<?php echo $css ?>frontend.css" /> 
+        <link rel="stylesheet" href="<?php echo $css ?>bootstrap.min.css" /> 
     </head>
     <body>
     <div class="upper-bar">
         <div class="container">
-            <?php 
-                if (isset($_SESSION['user'])) {
-                    echo $sessionUser . ' ';
-                    echo '<a href="profile.php">Profile</a>';
-                    echo ' - <a href="logout.php">Logout</a>';
+            <?php
+                $getUser = $con->prepare("SELECT * FROM users WHERE UserName = ?");
+                $getUser->execute(array($sessionUser));
+                $info = $getUser->fetch();
+
+                if (isset($_SESSION['user'])) { 
+                    if (! empty($info['avatar'])) {
+                        echo "<img class='rounded-circle  my-image' src='admin/uploads/avatars/" . $info['avatar'] . "' alt='' /> ";
+                    } else {
+                        echo "<img class='rounded-circle  my-image' src='admin/uploads/avatars/man.png' alt='' />";
+                    }
+                    echo $sessionUser;
+                    echo '<div class="upper-links">';
+                        echo '<a href="profile.php"> Profile | </a>';
+                        echo '<a href="newad.php"> New Item | </a>';
+                        echo '<a href="profile.php#ads"> My Items - </a>';
+                        echo '<a href="logout.php"> Logout</a>';
+                    echo '</div>';
 
                     $userStatus = checkUserStatus($sessionUser);
-                    
+
                     if ($userStatus == 1) {
-                        // User is not Active
-                    }
-                } else {
+
+                    }                    
+
+                } else { 
             ?>
             <a href="login.php">
-                <span>Login/SignUp</span>
+                <span class="login-out">Login | SignUp</span>
             </a>
             <?php } ?>
         </div>
@@ -48,11 +62,14 @@
             <div class="collapse navbar-collapse" id="app-nav">
                 <ul class="nav navbar-nav navbar">
                     <?php 
-                            $categories = getCat();
+                        $categories = getAllFrom("*", "categories", "WHERE parent = 0", "", "ID", "ASC");
 
-                            foreach ($categories as $cat) {
-                                echo '<li> <a href="categories.php?pageid=' . $cat['ID'] . '&pagename=' . str_replace(' ', '-', $cat['Name']) . '">' . $cat['Name'] . '</a></li>';
-                            }
+                        foreach ($categories as $cat) {
+                            echo 
+                                '<li>
+                                    <a href="categories.php?pageid=' . $cat['ID'] . '">' . $cat['Name'] . '</a>
+                                </li>';
+                        }
                     ?>
                 </ul>
             </div>

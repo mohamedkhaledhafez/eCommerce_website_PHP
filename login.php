@@ -20,7 +20,7 @@
 
                   // Check if user exist in database:
                   $stmt = $con->prepare("SELECT
-                                                UserName, Password 
+                                                UserID, UserName, Password 
                                           FROM 
                                                 users 
                                           Where 
@@ -28,11 +28,17 @@
                                           AND 
                                                 Password = ?");
                   $stmt->execute(array($user, $hashedPassword));
+
+                  $getUserID = $stmt->fetch();
+
                   $rowsCount = $stmt->rowCount();
 
                   // If count > 0, this mean the database contain record about this user
                   if($rowsCount > 0) {
                         $_SESSION['user'] = $user; // Register session name
+
+                        $_SESSION['user_id'] = $getUserID['UserID'];  // Register UserID In Session 
+
                         header('Location: index.php');  // Redirect to dashboard page
                         exit();
                   }

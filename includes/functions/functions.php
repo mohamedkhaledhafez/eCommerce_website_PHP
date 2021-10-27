@@ -1,8 +1,26 @@
 <?php 
 
+
+        /**
+        ** Get All Function v2.0
+        ** [Function To Get All Records From any table 
+        */
+
+        function getAllFrom($field, $tableName, $where = NULL, $and = NULL, $orderField, $ordering = "DESC") {
+            
+            global $con;
+
+            $getAll = $con->prepare("SELECT $field FROM $tableName $where $and ORDER BY $orderField $ordering");
+
+            $getAll->execute();
+            
+            $all = $getAll->fetchAll();
+
+            return $all;
+        }
     
         /**
-        ** Get Categories Functions
+        ** Get Categories Function v2.0
         ** [Function To Get Categories From Database 
         */
 
@@ -21,15 +39,17 @@
 
 
         /**
-        ** Get items Functions
-        ** [Function To Get items From Database 
+        ** Get Advertise Items Functions v2.0
+        ** [Function To Get Advertise Items From Database 
         */
-
-        function getItems($where, $value) {
+/* 
+        function getItems($where, $value, $approve = null) {
             
             global $con;
 
-            $getItem = $con->prepare("SELECT * FROM items WHERE $where = ? ORDER BY item_ID DESC");
+            $sql = $approve == null ? 'AND Approve = 1' : '';
+        
+            $getItem = $con->prepare("SELECT * FROM items WHERE $where = ? $sql ORDER BY item_ID DESC");
 
             $getItem->execute(array($value));
             
@@ -37,7 +57,7 @@
 
             return $items;
         }
-
+ */
 
         /**
          * Check if the user is not activated

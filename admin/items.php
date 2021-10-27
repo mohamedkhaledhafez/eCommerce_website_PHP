@@ -1,4 +1,5 @@
 <?php
+//use UI\Control;
 
 /*
 ============================================================
@@ -47,10 +48,11 @@ if (isset($_SESSION['Username'])) {
         <h1 class="text-center">Manage Items</h1>
         <div class="container">
             <div class="table-responsive">
-                <table class="main-table text-center table table-bordered">
+                <table class="main-table manage-items text-center table table-bordered">
                     <tr>
                         <td>ID</td>
                         <td>Item Name</td>
+                        <td>Avatar</td>
                         <td>Description</td>
                         <td>Price</td>
                         <td>Adding Date</td>
@@ -64,6 +66,13 @@ if (isset($_SESSION['Username'])) {
                             echo "<tr>";
                             echo "<td>" . $item['item_ID'] . "</td>";
                             echo "<td>" . $item['Name'] . "</td>";
+                            echo "<td>";
+                                if (empty ($item['avatar'])) {
+                                    echo "<img class='user_avatar' src='uploads/avatars/man.png' alt='' />";
+                                } else {
+                                    echo "<img src='uploads/avatars/" . $item['avatar'] . "' alt='' />";
+                                }
+                            echo "</td>";                            
                             echo "<td>" . $item['Description'] . "</td>";
                             echo "<td>" . $item['Price'] . "</td>";
                             echo "<td>" . $item['Add_Date'] . "</td>";
@@ -94,7 +103,7 @@ if (isset($_SESSION['Username'])) {
         
     <?php
 
-    } elseif ($do == 'Add') { // Add Member Page ?> 
+    } elseif ($do == 'Add') { //////////////////////////////////////// Add Member Page ?> 
         <h1 class="text-center">Add New Item</h1>
         <div class="container">
             <form class="form-horizontal" action="?do=Insert" method="POST">
@@ -156,10 +165,8 @@ if (isset($_SESSION['Username'])) {
                         <select name="member">
                             <option value="0">...</option>
                             <?php 
-                                $stmt = $con->prepare("SELECT * FROM users");
-                                $stmt->execute();
-                                $users = $stmt->fetchAll();
-                                foreach ($users as $user) {
+                                $allMembers = getAllFrom("*", "users", "", "", "UserID");
+                                foreach ($allMembers as $user) {
                                     echo "<option value='" . $user['UserID'] . "'>" . $user['UserName']. "</option>";
                                 }
                             ?>
@@ -174,18 +181,42 @@ if (isset($_SESSION['Username'])) {
                     <div class="col-sm-10 col-md-6">
                         <select name="category">
                             <option value="0">...</option>
-                            <?php 
-                                $stmt2 = $con->prepare("SELECT * FROM categories");
-                                $stmt2->execute();
-                                $cats = $stmt2->fetchAll();
-                                foreach ($cats as $cat) {
+                            <?php
+                                $allCats = getAllFrom("*", "categories", "WHERE Parent = 0", "", "ID"); 
+                                foreach ($allCats as $cat) {
                                     echo "<option value='" . $cat['ID'] . "'>" . $cat['Name']. "</option>";
+                                    $childCats = getAllFrom("*", "categories", "WHERE Parent = {$cat['ID']}", "", "ID");
+                                    foreach ($childCats as $child) {
+                                        echo "<option value='" . $child['ID'] . "'>- " . $child['Name']. "</option>";
+                                    }
                                 }
                             ?>
                         </select>
                     </div>
                 </div>
                 <!--End Categories Field-->
+
+                <!--start Tags Field-->
+                <div class="form-group  form-group-lg">
+                    <label class="col-sm-2 control-label">Tags</label>
+                    <div class="col-sm-10 col-md-6">
+                        <input 
+                            type="text"
+                            name="tags" 
+                            class="form-control" 
+                            placeholder="Seperate tags with comma ( , )"/>
+                    </div>
+                </div>
+                <!--End Tags Field-->
+
+                <!--start Profile Image Field-->
+                <div class="form-group  form-group-lg">
+                    <label class="col-sm-2 control-label">User Image</label>
+                    <div class="col-sm-10 col-md-6">
+                        <input type="file" name="avatar" class="form-control"/>
+                    </div>
+                </div>
+                <!--End FullName Field-->
 
                 <!--start Submit Field-->
                 <div class="form-group  form-group-lg">
@@ -205,6 +236,21 @@ if (isset($_SESSION['Username'])) {
             echo "<h1 class='text-center'>Insert Item</h1>";
             echo "<div class='container'>";
             
+
+            // Upload Variables
+
+            $avatarName = $_FILES['avatar']['name'];
+            $avatarSize = $_FILES['avatar']['size'];
+            $avatarTmp = $_FILES['avatar']['tmp_name'];
+            $avatarType = $_FILES['avatar']['type'];
+
+            // List of allowed file type to upload
+            $avatarAllowedExtension = array("jpeg", "jpg", "png", "gif");
+
+            // Get avatar extensions
+            $exp = explode('.', $avatarName);
+            $avatarExtension = strtolower(end($exp));
+
             // Get variables from Form
             $name     = $_POST['name'];
             $desc     = $_POST['description'];
@@ -213,6 +259,7 @@ if (isset($_SESSION['Username'])) {
             $status   = $_POST['status'];
             $member   = $_POST['member'];
             $cat      = $_POST['category'];
+            $tags      = $_POST['tags'];
 
             // Validate the Form
             $formErrors = array();
@@ -252,19 +299,35 @@ if (isset($_SESSION['Username'])) {
                 $formErrors[] = 'You Must Choose The <strong>Category</strong> Of The Item';
             }
 
+            if (! empty ($avatarName) && ! in_array($avatarExtension, $avatarAllowedExtension)) {
+                $formErrors[] = 'This Extension Is Not <Strong>Allowed</Strong>';
+            }
+            
+            if (empty($avatarName)) {
+                $formErrors[] = 'Image can\'t be empty';
+            }
+            
+            if ($avatarSize > 4194304) {
+                $formErrors[] = 'Image can\'t be larger than <strong>4MB</strong>';
+            }
+
+
+
             // Loop into errors array and Echo it
             foreach($formErrors as $error) {
                 echo '<div class="alert alert-danger">' . $error . '</div>';
             }
 
-            // Check if there is no error proceed the update operation
-            
+            // Check if there is no error proceed the update operation            
             if (empty($formErrors)) {
+
+                $avatar = rand(0, 10000) . '_' . $avatarName;
+                move_uploaded_file($avatarTmp, "uploads/avatars/" . $avatar);
                 
                 // Insert user informations to database
                 $stmt = $con->prepare("INSERT INTO 
-                                                items(Name, Description, Price, Made_in, Status, Add_Date, Cat_ID, Member_ID)
-                                                VALUES(:mname, :mdesc, :mprice, :mcountry, :mstatus, now(), :mcat, :mMember)");
+                                                items(Name, Description, Price, Made_in, Status, Add_Date, Cat_ID, Member_ID, tags, avatar)
+                                                VALUES(:mname, :mdesc, :mprice, :mcountry, :mstatus, now(), :mcat, :mMember, :mtags, :mavatar)");
 
                 $stmt->execute(array(
                     'mname'     => $name,
@@ -273,7 +336,9 @@ if (isset($_SESSION['Username'])) {
                     'mcountry'  => $country,
                     'mstatus'   => $status,
                     'mcat'      => $cat,
-                    'mMember'   => $member
+                    'mMember'   => $member,
+                    'mtags'     => $tags,
+                    'mavatar'   => $avatar
 
                 ));
 
@@ -286,7 +351,7 @@ if (isset($_SESSION['Username'])) {
 
             echo "<div class='container'>";
 
-                $theMsg = '<div class="alert alert-danger">SORRY, YOU CANT EDIT THIS PAGE DIRECTLY WITHOUT POST METHOD</div>';
+                $theMsg = '<div class="alert alert-danger">SORRY, YOU CANT EDIT THIS PAGE DIRECTLY</div>';
                 redirectHome($theMsg);
 
             echo "</div>";
@@ -316,111 +381,145 @@ if (isset($_SESSION['Username'])) {
 
             <h1 class="text-center">Edit Item</h1>
             <div class="container">
-            <form class="form-horizontal" action="?do=Update" method="POST">
-                <input type="hidden" name="itemid" value="<?php echo $itemid ?>">
-                <!--start Name Field-->
-                <div class="form-group  form-group-lg">
-                    <label class="col-sm-2 control-label">Item Name</label>
-                    <div class="col-sm-10 col-md-6">
-                        <input type="text" name="name" class="form-control" placeholder="Name of The Item" 
-                               value="<?php echo $item['Name'] ?>"/>
+                <div class="row">
+                    <form class="col-md-8 form-horizontal" action="?do=Update" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="itemid" value="<?php echo $itemid ?>">
+                    <!--start Name Field-->
+                    <div class="form-group  form-group-lg">
+                        <label class="col-sm-2 control-label">Item Name</label>
+                        <div class="col-sm-10 col-md-6">
+                            <input type="text" name="name" class="form-control" placeholder="Name of The Item" 
+                                value="<?php echo $item['Name'] ?>"/>
+                        </div>
                     </div>
-                </div>
-                <!--End Name Field-->
+                    <!--End Name Field-->
 
-                <!--start Description Field-->
-                <div class="form-group  form-group-lg">
-                    <label class="col-sm-2 control-label">Description</label>
-                    <div class="col-sm-10 col-md-6">
-                        <input type="text" name="description" class="form-control" placeholder="Description of The Item"
-                               value="<?php echo $item['Description'] ?>"/>
+                    <!--start Description Field-->
+                    <div class="form-group  form-group-lg">
+                        <label class="col-sm-2 control-label">Description</label>
+                        <div class="col-sm-10 col-md-6">
+                            <input type="text" name="description" class="form-control" placeholder="Description of The Item"
+                                value="<?php echo $item['Description'] ?>"/>
+                        </div>
                     </div>
-                </div>
-                <!--End Description Field-->
+                    <!--End Description Field-->
 
-                <!--start Price Field-->
-                <div class="form-group  form-group-lg">
-                    <label class="col-sm-2 control-label">Price</label>
-                    <div class="col-sm-10 col-md-6">
-                        <input type="text" name="price" class="form-control" placeholder="Price of The Item"
-                               value="<?php echo $item['Price'] ?>"/>
+                    <!--start Price Field-->
+                    <div class="form-group  form-group-lg">
+                        <label class="col-sm-2 control-label">Price</label>
+                        <div class="col-sm-10 col-md-6">
+                            <input type="text" name="price" class="form-control" placeholder="Price of The Item"
+                                value="<?php echo $item['Price'] ?>"/>
+                        </div>
                     </div>
-                </div>
-                <!--End Price Field-->
+                    <!--End Price Field-->
 
-                <!--start Country of The Item Field-->
-                <div class="form-group  form-group-lg">
-                    <label class="col-sm-2 control-label">Country of Made</label>
-                    <div class="col-sm-10 col-md-6">
-                        <input type="text" name="country" class="form-control" placeholder="Country of Made of The Item"
-                               value="<?php echo $item['Made_in'] ?>"/>
+                    <!--start Country of The Item Field-->
+                    <div class="form-group  form-group-lg">
+                        <label class="col-sm-2 control-label">Country of Made</label>
+                        <div class="col-sm-10 col-md-6">
+                            <input type="text" name="country" class="form-control" placeholder="Country of Made of The Item"
+                                value="<?php echo $item['Made_in'] ?>"/>
+                        </div>
                     </div>
-                </div>
-                <!--End Country of The Item Field-->
+                    <!--End Country of The Item Field-->
 
-                <!--start Status of The Item Field-->
-                <div class="form-group  form-group-lg">
-                    <label class="col-sm-2 control-label">Status of The Item</label>
-                    <div class="col-sm-10 col-md-6">
-                        <select name="status">
-                            <option value="1" <?php if($item['Status'] == 1) { echo 'selected'; } ?>>New</option>
-                            <option value="2" <?php if($item['Status'] == 2) { echo 'selected'; } ?>>Like New</option>
-                            <option value="3" <?php if($item['Status'] == 3) { echo 'selected'; } ?>>Used</option>
-                            <option value="4" <?php if($item['Status'] == 4) { echo 'selected'; } ?>>Old</option>
-                        </select>
+                    <!--start Status of The Item Field-->
+                    <div class="form-group  form-group-lg">
+                        <label class="col-sm-2 control-label">Status of The Item</label>
+                        <div class="col-sm-10 col-md-6">
+                            <select name="status">
+                                <option value="1" <?php if($item['Status'] == 1) { echo 'selected'; } ?>>New</option>
+                                <option value="2" <?php if($item['Status'] == 2) { echo 'selected'; } ?>>Like New</option>
+                                <option value="3" <?php if($item['Status'] == 3) { echo 'selected'; } ?>>Used</option>
+                                <option value="4" <?php if($item['Status'] == 4) { echo 'selected'; } ?>>Old</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <!--End Status of The Item Field-->
+                    <!--End Status of The Item Field-->
 
-                <!--start Members Field--> <!-- Members Field : This is for the members who add the items in item list -->
-                <div class="form-group  form-group-lg">
-                    <label class="col-sm-2 control-label">Member</label>
-                    <div class="col-sm-10 col-md-6">
-                        <select name="member">
-                            <?php 
-                                $stmt = $con->prepare("SELECT * FROM users");
-                                $stmt->execute();
-                                $users = $stmt->fetchAll();
-                                foreach ($users as $user) {
-                                    echo "<option value='" . $user['UserID'] . "'";
-                                    if($item['Member_ID'] == $user['UserID']) { echo 'selected'; }
-                                    echo ">" . $user['UserName'] . "</option>";
-                                }
-                            ?>
-                        </select>
+                    <!--start Members Field--> <!-- Members Field : This is for the members who add the items in item list -->
+                    <div class="form-group  form-group-lg">
+                        <label class="col-sm-2 control-label">Member</label>
+                        <div class="col-sm-10 col-md-6">
+                            <select name="member">
+                                <?php 
+                                    $AllMembers = getAllFrom("*", "users", "", "", "UserID");
+                                    foreach ($AllMembers as $user) {
+                                        echo "<option value='" . $user['UserID'] . "'";
+                                        if($item['Member_ID'] == $user['UserID']) { echo 'selected'; }
+                                        echo ">" . $user['UserName'] . "</option>";
+                                    }
+                                ?>
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <!--End Members Field-->
+                    <!--End Members Field-->
 
-                <!--start Categories Field--> <!-- Categories Field : This is for the Category which the item is Added From -->
-                <div class="form-group  form-group-lg">
-                    <label class="col-sm-2 control-label">Category</label>
-                    <div class="col-sm-10 col-md-6">
-                        <select name="category">
-                            <?php 
-                                $stmt2 = $con->prepare("SELECT * FROM categories");
-                                $stmt2->execute();
-                                $cats = $stmt2->fetchAll();
-                                foreach ($cats as $cat) {
-                                    echo "<option value='" . $cat['ID'] . "'";
-                                    if($item['Cat_ID'] == $cat['ID']) { echo 'selected'; }
-                                    echo ">" . $cat['Name']. "</option>";
-                                }
-                            ?>
-                        </select>
+                    <!--start Categories Field--> <!-- Categories Field : This is for the Category which the item is Added From -->
+                    <div class="form-group  form-group-lg">
+                        <label class="col-sm-2 control-label">Category</label>
+                        <div class="col-sm-10 col-md-6">
+                            <select name="category">
+                                <?php 
+                                    $stmt2 = $con->prepare("SELECT * FROM categories");
+                                    $stmt2->execute();
+                                    $cats = $stmt2->fetchAll();
+                                    foreach ($cats as $cat) {
+                                        echo "<option value='" . $cat['ID'] . "'";
+                                        if($item['Cat_ID'] == $cat['ID']) { echo 'selected'; }
+                                        echo ">" . $cat['Name']. "</option>";
+                                    }
+                                ?>
+                            </select>
+                        </div>
                     </div>
-                </div>
-                <!--End Categories Field-->
-
-                <!--start Submit Field-->
-                <div class="form-group  form-group-lg">
-                    <div class="col-sm-offset-2 col-sm-10">
-                        <input type="submit" value="Save Item" class="btn btn-primary btn-sm" />
+                    <!--End Categories Field-->
+                    
+                    <!--start Tags Field-->
+                    <div class="form-group  form-group-lg">
+                        <label class="col-sm-2 control-label">Tags</label>
+                        <div class="col-sm-10 col-md-6">
+                            <input 
+                                type="text"
+                                name="tags" 
+                                class="form-control" 
+                                placeholder="Seperate tags with comma ( , )"
+                                value="<?php echo $item['tags'] ?>" />
+                        </div>
                     </div>
-                </div>
-                <!--End Submit Field-->
-            </form>
+                    <!--End Tags Field-->
 
+                    <!--start Avatar Field-->
+                    <div class="form-group  form-group-lg">
+                        <label class="col-sm-2 control-label">Avatar</label>
+                        <div class="col-sm-10 col-md-6">
+                            <input type="file" name="avatar" value="<?php echo $item['avatar'] ?>" class="form-control"/>
+                        </div>
+                    </div>
+                    <!--End Avatar Field-->
+
+                    <!--start Submit Field-->
+                    <div class="form-group  form-group-lg">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <input type="submit" value="Save Item" class="btn btn-primary btn-sm" />
+                        </div>
+                    </div>
+                    <!--End Submit Field-->
+                    </form>
+
+                    <div class="col-md-4">
+                        <?php 
+                            if(! empty ($item['avatar'])) {
+                                echo "<img class='user_avatar' src='uploads/avatars/" . $item['avatar'] . "' alt='' />";
+                            } else {
+                                echo "<img class='user_avatar' src='uploads/avatars/man.png' alt='' />";
+                            }
+                        
+                        ?>
+                    </div>
+
+                </div>
             <?php 
 
             // Select all users in database except the Admin
@@ -491,12 +590,27 @@ if (isset($_SESSION['Username'])) {
 
             echo "</div>";
         }
-    } elseif ($do == 'Update') {  /////////////////////////////////// Update Page 
+    } elseif ($do == 'Update') {  ////////////////////////////////////////// Update Page 
 
         echo "<h1 class='text-center'>Update Item</h1>";
         echo "<div class='container'>";
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+            // Upload Variables
+
+            $avatarName = $_FILES['avatar']['name'];
+            $avatarSize = $_FILES['avatar']['size'];
+            $avatarTmp = $_FILES['avatar']['tmp_name'];
+            $avatarType = $_FILES['avatar']['type'];
+
+            // List of allowed file type to upload
+            $avatarAllowedExtension = array("jpeg", "jpg", "png", "gif");
+
+            // Get avatar extensions
+            $exp = explode('.', $avatarName);
+            $avatarExtension = strtolower(end($exp));
+
             // Get variables from Form
             $id         = $_POST['itemid'];
             $name       = $_POST['name'];
@@ -506,6 +620,7 @@ if (isset($_SESSION['Username'])) {
             $status     = $_POST['status'];
             $member     = $_POST['member'];
             $cat        = $_POST['category'];
+            $tags       = $_POST['tags'];
             
             // Validate the Form
             $formErrors = array();
@@ -553,6 +668,10 @@ if (isset($_SESSION['Username'])) {
             // Check if there is no error proceed the update operation      
             if (empty($formErrors)) {
 
+                $avatar = rand(0, 10000) . '_' . $avatarName;
+
+                move_uploaded_file($avatarTmp, "uploads/avatars/" . $avatar);
+
                 // Update the database with this informations
                 $stmt = $con->prepare("UPDATE
                                             items
@@ -563,10 +682,12 @@ if (isset($_SESSION['Username'])) {
                                             Made_in = ?,
                                             Status = ?,
                                             Cat_ID = ?,
-                                            Member_ID = ? 
+                                            Member_ID = ?,
+                                            tags =  ?,
+                                            avatar = ?
                                         WHERE 
                                             item_ID = ?");
-                $stmt->execute(array($name, $desc, $price, $country, $status, $cat, $member, $id));
+                $stmt->execute(array($name, $desc, $price, $country, $status, $cat, $member, $tags, $avatar, $id));
 
                 // Echo success Message
                 $theMsg = "<div class='alert alert-success'>" . $stmt->rowCount() . ' Record UPDATED</div>';

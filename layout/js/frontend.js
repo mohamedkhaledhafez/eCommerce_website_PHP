@@ -36,4 +36,9 @@ $(function () {
   $(".confirm").click(function () {
     return confirm("Are you sure you want to Delete this item");
   });
+
+  $('.live').keyup(function () {
+    $($(this).data('class')).text($(this).val()); 
+  });
+
 });

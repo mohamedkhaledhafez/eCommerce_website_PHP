@@ -6,8 +6,7 @@
 == You can Add | Edit|  Delete Members from here
 ============================================================
 */
-
-
+ob_start();
 session_start();
 
 $pageTitle = 'Members';
@@ -41,9 +40,10 @@ if (isset($_SESSION['Username'])) {
         <h1 class="text-center">Manage Members</h1>
         <div class="container">
             <div class="table-responsive">
-                <table class="main-table text-center table table-bordered">
+                <table class="main-table manage-members text-center table table-bordered">
                     <tr>
-                        <td>UserID</td>
+                        <td>#ID</td>
+                        <td>Avatar</td>
                         <td>Username</td>
                         <td>Email</td>
                         <td>Full Name</td>
@@ -55,6 +55,14 @@ if (isset($_SESSION['Username'])) {
                         foreach($rows as $row) {
                             echo "<tr>";
                             echo "<td>" . $row['UserID'] . "</td>";
+                            echo "<td>";
+                                if (empty ($row['avatar'])) {
+                                    echo "<img class='user_avatar' src='uploads/avatars/man.png' alt='' />";
+                                } else {
+                                    echo "<img src='uploads/avatars/" . $row['avatar'] . "' alt='' />";
+                                }
+                            
+                            echo "</td>";
                             echo "<td>" . $row['UserName'] . "</td>";
                             echo "<td>" . $row['Email'] . "</td>";
                             echo "<td>" . $row['FullName'] . "</td>";
@@ -84,11 +92,11 @@ if (isset($_SESSION['Username'])) {
         } ?>
         
     <?php 
-    } elseif ($do == 'Add') { // Add Member Page ?>
+    } elseif ($do == 'Add') { ///////////////////////////////////////////////////// Add Member Page ?>
 
             <h1 class="text-center">Add New Member</h1>
             <div class="container">
-                <form class="form-horizontal" action="?do=Insert" method="POST">
+                <form class="form-horizontal" action="?do=Insert" method="POST" enctype="multipart/form-data">
                     <!--start Username Field-->
                     <div class="form-group  form-group-lg">
                         <label class="col-sm-2 control-label">Username</label>
@@ -125,6 +133,15 @@ if (isset($_SESSION['Username'])) {
                         </div>
                     </div>
                     <!--End FullName Field-->
+                    
+                    <!--start Profile Image Field-->
+                    <div class="form-group  form-group-lg">
+                        <label class="col-sm-2 control-label">User Image</label>
+                        <div class="col-sm-10 col-md-6">
+                            <input type="file" name="avatar" class="form-control"/>
+                        </div>
+                    </div>
+                    <!--End FullName Field-->
 
                     <!--start Submit Field-->
                     <div class="form-group  form-group-lg">
@@ -138,14 +155,26 @@ if (isset($_SESSION['Username'])) {
 
     <?php
     } elseif ($do == 'Insert') {  ////////////////////////////////////////////// Insert Member Page 
-       // Test echo:
-        // echo $_POST['username'] . $_POST['password'] . $_POST['email'] . $_POST['fullname'];
-
+       
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             echo "<h1 class='text-center'>Insert Member</h1>";
             echo "<div class='container'>";
-            
+
+            // Upload Variables
+
+            $avatarName = $_FILES['avatar']['name'];
+            $avatarSize = $_FILES['avatar']['size'];
+            $avatarTmp = $_FILES['avatar']['tmp_name'];
+            $avatarType = $_FILES['avatar']['type'];
+
+            // List of allowed file type to upload
+            $avatarAllowedExtension = array("jpeg", "jpg", "png", "gif");
+
+            // Get avatar extensions
+            $exp = explode('.', $avatarName);
+            $avatarExtension = strtolower(end($exp));
+
             // Get variables from Form
             $user   = $_POST['username'];
             $pass   = $_POST['password'];
@@ -158,43 +187,54 @@ if (isset($_SESSION['Username'])) {
             $formErrors = array();
             
             if (empty($user)) {
-
                 $formErrors[] = 'Username can\'t be empty';
             }
 
             if (strlen($user) < 3) {
-
                 $formErrors[] = 'Username can\'t be Less than <strong>3</strong> charachters';
             }
 
             if (strlen($user) > 20) {
-
                 $formErrors[] = 'Username can\'t be More than <strong>20</strong> charachters';
             }
 
             if (empty($pass)) {
-
                 $formErrors[] = 'Password can\'t be empty';
             }
 
             if (empty($full)) {
-
                 $formErrors[] = 'Full name can\'t be empty';
             }
 
             if (empty($email)) {
-
                 $formErrors[] = 'Email can\'t be empty';
             }
+
+            if (! empty ($avatarName) && ! in_array($avatarExtension, $avatarAllowedExtension)) {
+                $formErrors[] = 'This Extension Is Not <Strong>Allowed</Strong>';
+            }
+            
+            if (empty($avatarName)) {
+                $formErrors[] = 'Image can\'t be empty';
+            }
+            
+            if ($avatarSize > 4194304) {
+                $formErrors[] = 'Image can\'t be larger than <strong>4MB</strong>';
+            }
+
 
             // Loop into errors array and Echo it
             foreach($formErrors as $error) {
                 echo '<div class="alert alert-danger">' . $error . '</div>';
             }
 
-            // Check if there is no error proceed the update operation
-            
+            // Check if there is no error proceed the update operation            
             if (empty($formErrors)) {
+
+                $avatar = rand(0, 10000) . '_' . $avatarName;
+
+                move_uploaded_file($avatarTmp, "uploads/avatars/" . $avatar);
+            
                 // Check if user is exist in Database
                 $check = checkItem("UserName", "users", $user);
 
@@ -205,14 +245,15 @@ if (isset($_SESSION['Username'])) {
                 } else {
                     // Insert user informations to database
                     $stmt = $con->prepare("INSERT INTO 
-                                                    users(UserName, Password, Email, FullName, RegisterStatus, Date)
-                                                    VALUES(:muser, :mpass, :mmail, :mfull, 1, now())");
+                                            users(UserName, Password, Email, FullName, RegisterStatus, Date, avatar)
+                                            VALUES(:muser, :mpass, :mmail, :mfull, 1, now(), :mavatar) ");
 
                     $stmt->execute(array(
                         'muser' => $user,
                         'mpass' => $hashPassword,
                         'mmail' => $email,
-                        'mfull' => $full
+                        'mfull' => $full,
+                        'mavatar' => $avatar
 
                     ));
 
@@ -221,7 +262,7 @@ if (isset($_SESSION['Username'])) {
                     redirectHome($theMsg, 'back');
                 }
             }
-
+            
         } else {
 
             echo "<div class='container'>";
@@ -255,54 +296,75 @@ if (isset($_SESSION['Username'])) {
 
             <h1 class="text-center">Edit Member</h1>
             <div class="container">
-                <form class="form-horizontal" action="?do=Update" method="POST">
-                    <input type="hidden" name="userid" value="<?php echo $userid ?>">
-                    <!--start Username Field-->
-                    <div class="form-group  form-group-lg">
-                        <label class="col-sm-2 control-label">Username</label>
-                        <div class="col-sm-10 col-md-6">
-                            <input type="text" name="username" class="form-control" value="<?php echo $row['UserName'] ?>" autocomplete="off" required="required"/>
+                <div class="row">
+                    <form class="col-md-9 form-horizontal" action="?do=Update" method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="userid" value="<?php echo $userid ?>">
+                        <!--start Username Field-->
+                        <div class="form-group  form-group-lg">
+                            <label class="col-sm-2 control-label">Username</label>
+                            <div class="col-sm-10 col-md-6">
+                                <input type="text" name="username" class="form-control" value="<?php echo $row['UserName'] ?>" autocomplete="off" required="required"/>
+                            </div>
                         </div>
-                    </div>
-                    <!--End Username Field-->
+                        <!--End Username Field-->
 
-                    <!--start Password Field-->
-                    <div class="form-group  form-group-lg">
-                        <label class="col-sm-2 control-label">Password</label>
-                        <div class="col-sm-10 col-md-6">
-                            <input type="hidden" name="oldpassword" value="<?php echo $row['Password'] ?>" />
-                            <input type="password" name="newpassword" class="form-control" autocomplete="new-password" placeholder="Leave it Blank if you dont want to change" />
+                        <!--start Password Field-->
+                        <div class="form-group  form-group-lg">
+                            <label class="col-sm-2 control-label">Password</label>
+                            <div class="col-sm-10 col-md-6">
+                                <input type="hidden" name="oldpassword" value="<?php echo $row['Password'] ?>" />
+                                <input type="password" name="newpassword" class="form-control" autocomplete="new-password" placeholder="Leave it Blank if you dont want to change" />
+                            </div>
                         </div>
-                    </div>
-                    <!--End Password Field-->
+                        <!--End Password Field-->
 
-                    <!--start Email Field-->
-                    <div class="form-group  form-group-lg">
-                        <label class="col-sm-2 control-label">Email</label>
-                        <div class="col-sm-10 col-md-6">
-                            <input type="email" name="email" value="<?php echo $row['Email'] ?>"  class="form-control" required="required"/>
+                        <!--start Email Field-->
+                        <div class="form-group  form-group-lg">
+                            <label class="col-sm-2 control-label">Email</label>
+                            <div class="col-sm-10 col-md-6">
+                                <input type="email" name="email" value="<?php echo $row['Email'] ?>"  class="form-control" required="required"/>
+                            </div>
                         </div>
-                    </div>
-                    <!--End Email Field-->
+                        <!--End Email Field-->
 
-                    <!--start FullName Field-->
-                    <div class="form-group  form-group-lg">
-                        <label class="col-sm-2 control-label">FullName</label>
-                        <div class="col-sm-10 col-md-6">
-                            <input type="text" name="fullname" value="<?php echo $row['FullName'] ?>" class="form-control" />
+                        <!--start FullName Field-->
+                        <div class="form-group  form-group-lg">
+                            <label class="col-sm-2 control-label">FullName</label>
+                            <div class="col-sm-10 col-md-6">
+                                <input type="text" name="fullname" value="<?php echo $row['FullName'] ?>" class="form-control" />
+                            </div>
                         </div>
-                    </div>
-                    <!--End FullName Field-->
+                        <!--End FullName Field-->
 
-                    <!--start Submit Field-->
-                    <div class="form-group  form-group-lg">
-                        <div class="col-sm-offset-2 col-sm-10">
-                            <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                        <!--start Profile Image Field-->
+                        <div class="form-group  form-group-lg">
+                            <label class="col-sm-2 control-label">User Image</label>
+                            <div class="col-sm-10 col-md-6">
+                                <input type="file" name="avatar" value="<?php echo $row['avatar'] ?>" class="form-control"/>
+                            </div>
                         </div>
-                    </div>
-                    <!--End Submit Field-->
+                        <!--End FullName Field-->
 
-                </form>
+                        <!--start Submit Field-->
+                        <div class="form-group  form-group-lg">
+                            <div class="col-sm-offset-2 col-sm-10">
+                                <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                            </div>
+                        </div>
+                        <!--End Submit Field-->
+
+                    </form>
+                    <div class="col-md-3">
+                        <?php 
+                            if(! empty ($row['avatar'])) {
+                                echo "<img class='user_avatar' src='uploads/avatars/" . $row['avatar'] . "' alt='' />";
+                            } else {
+                                echo "<img class='user_avatar' src='uploads/avatars/man.png' alt='' />";
+                            }
+                        
+                        ?>
+                    </div>
+                </div>
             </div>
     <?php 
         } else {
@@ -315,12 +377,28 @@ if (isset($_SESSION['Username'])) {
             echo "</div>";
         }
         
-    } elseif ($do == 'Update') {  /////////////////////////////////// Update Page 
+    } elseif ($do == 'Update') {  ///////////////////////////////////////////////// Update Page 
 
         echo "<h1 class='text-center'>Update Member</h1>";
         echo "<div class='container'>";
 
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+            // Upload Variables
+
+            $avatarName = $_FILES['avatar']['name'];
+            $avatarSize = $_FILES['avatar']['size'];
+            $avatarTmp = $_FILES['avatar']['tmp_name'];
+            $avatarType = $_FILES['avatar']['type'];
+
+            // List of allowed file type to upload
+            $avatarAllowedExtension = array("jpeg", "jpg", "png", "gif");
+
+            // Get avatar extensions
+            $exp = explode('.', $avatarName);
+            $avatarExtension = strtolower(end($exp));
+
+                        
             // Get variables from Form
             $id     = $_POST['userid'];
             $user   = $_POST['username'];
@@ -363,6 +441,10 @@ if (isset($_SESSION['Username'])) {
             
             if (empty($formErrors)) {
 
+                $avatar = rand(0, 10000) . '_' . $avatarName;
+
+                move_uploaded_file($avatarTmp, "uploads/avatars/" . $avatar);
+                
                 $stmt2 = $con->prepare("SELECT 
                                             * 
                                         FROM 
@@ -381,8 +463,8 @@ if (isset($_SESSION['Username'])) {
                     redirectHome($theMsg, 'back');
                 } else {
                     // Update the database with this informations
-                    $stmt = $con->prepare("UPDATE users SET UserName = ?, Email = ?, FullName = ?, Password = ? WHERE UserID = ?");
-                    $stmt->execute(array($user, $email, $full, $pass, $id));
+                    $stmt = $con->prepare("UPDATE users SET UserName = ?, Email = ?, FullName = ?, Password = ?, avatar = ? WHERE UserID = ?");
+                    $stmt->execute(array($user, $email, $full, $pass, $avatar, $id));
 
                     // Echo success Message
                     $theMsg = "<div class='alert alert-success'>" . $stmt->rowCount() . ' Record UPDATED</div>';

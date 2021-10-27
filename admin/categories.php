@@ -28,7 +28,7 @@
                 $sort = $_GET['sort'];
             }
 
-            $stmt2 = $con->prepare("SELECT * FROM categories ORDER BY Ordering $sort");
+            $stmt2 = $con->prepare("SELECT * FROM categories WHERE parent = 0 ORDER BY Ordering $sort");
             $stmt2->execute();
             $categs = $stmt2->fetchAll(); ?>
 
@@ -66,10 +66,25 @@
                                         if ($categ['Visibility'] == 1) { echo '<span class="visibility"><i class="fa fa-eye"></i> Hidden</span>'; } 
                                         if ($categ['Allow_Comment'] == 1) { echo '<span class="commenting"><i class="fa fa-close"></i> Comment Disabled</span>'; } 
                                         if ($categ['Allow_Ads'] == 1) { echo '<span class="advertises"><i class="fa fa-close"></i> Advertises Disabled</span>'; } 
+                                        // Get Child Categories / Sub-categories
+                                        $childCats = getAllFrom("*", "categories", "WHERE parent = {$categ['ID']}", "", "ID", "ASC");
+                                        if (! empty($childCats)) {
+                                            echo '<h4 class="child-head">Child Category</h4>';
+                                            echo '<ul class="list-unstyled child-cats">';
+                                            foreach ($childCats as $cat) {
+                                                echo  "<li class='child-cat'> 
+                                                    <a href='categories.php?do=Edit&catid=" .$cat['ID'] .  "'>" . $cat['Name'] . "</a>
+                                                    <a href='categories.php?do=Delete&catid=" .$cat['ID'] ."'class='show-delete confirm'>Delete</a>    
+                                                </li>";
+                                            }
+                                            echo '</ul>';
+                                        }
+
                                     echo "</div>";
                                 echo "</div>";
                                 echo "<hr>";
 
+                                
                             }
                         ?>
                     </div>
@@ -109,6 +124,23 @@
                         </div>
                     </div>
                     <!--End Ordering Field-->
+
+                    <!--start Category Type Field-->
+                    <div class="form-group  form-group-lg">
+                        <label class="col-sm-2 control-label">Category Parent</label>
+                        <div class="col-sm-10 col-md-6">
+                            <select name="parent">
+                                <option value="0">None</option>
+                                <?php 
+                                    $allCats = getAllFrom("*", "categories", "WHERE parent = 0", "", "ID", "DESC");
+                                    foreach ($allCats as $cat) {
+                                        echo "<option value='" . $cat['ID'] . "'>" . $cat['Name'] . "</option>";
+                                    }
+                                ?>
+                            </select>
+                        </div>
+                    </div>
+                    <!--End Category Type Field-->
 
                     <!--start Visibility Field-->
                     <div class="form-group  form-group-lg">
@@ -179,10 +211,11 @@
                 // Get variables from Form
                 $name       = $_POST['name'];
                 $desc       = $_POST['description'];
+                $parent     = $_POST['parent'];
                 $order      = $_POST['ordering'];
                 $visible    = $_POST['visibility'];
                 $comment    = $_POST['commenting'];
-                $ads    = $_POST['advertising'];
+                $ads        = $_POST['advertising'];
     
                 
             
@@ -196,12 +229,13 @@
                 } else {
                     // Insert Category Informations To Database
                     $stmt = $con->prepare("INSERT INTO 
-                                                    categories(Name, Description, Ordering, Visibility, Allow_Comment, Allow_Ads)
-                                                    VALUES(:mname, :mdesc, :morder, :mvisible, :mcomment, :mads)");
+                        categories(Name, Description, parent, Ordering, Visibility, Allow_Comment, Allow_Ads)
+                        VALUES(:mname, :mdesc,:mparent, :morder, :mvisible, :mcomment, :mads)");
 
                     $stmt->execute(array(
                         'mname'     => $name,
                         'mdesc'     => $desc,
+                        'mparent'   => $parent,
                         'morder'    => $order,
                         'mvisible'  => $visible,
                         'mcomment'  => $comment,
@@ -272,7 +306,24 @@
                             </div>
                         </div>
                         <!--End Ordering Field-->
-
+                        <!--start Category Type Field-->
+                        <div class="form-group  form-group-lg">
+                            <label class="col-sm-2 control-label">Category Parent</label>
+                            <div class="col-sm-10 col-md-6">
+                                <select name="parent">
+                                    <option value="0">None</option>
+                                    <?php 
+                                        $allCats = getAllFrom("*", "categories", "WHERE parent = 0", "", "ID", "DESC");
+                                        foreach ($allCats as $c) {
+                                            echo "<option value='" . $c['ID'] . "'";
+                                            if ($cat['Parent'] == $c['ID']) { echo 'selected'; }
+                                            echo ">" . $c['Name'] . "</option>";
+                                        }
+                                    ?>
+                                </select>
+                            </div>
+                        </div>
+                        <!--End Category Type Field-->
                         <!--start Visibility Field-->
                         <div class="form-group  form-group-lg">
                             <label class="col-sm-2 control-label">Visible</label>
@@ -324,7 +375,7 @@
                         <!--start Submit Field-->
                         <div class="form-group  form-group-lg">
                             <div class="col-sm-offset-2 col-sm-10">
-                                <input type="submit" value="Add Category" class="btn btn-primary btn-lg" />
+                                <input type="submit" value="Save Updates" class="btn btn-primary btn-lg" />
                             </div>
                         </div>
                         <!--End Submit Field-->
@@ -352,7 +403,8 @@
                 $id       = $_POST['catid'];
                 $name     = $_POST['name'];
                 $desc     = $_POST['description'];
-                $order    = $_POST['ordering'];             
+                $order    = $_POST['ordering'];
+                $parent   = $_POST['parent'];             
                 $visible  = $_POST['visibility'];             
                 $comment  = $_POST['commenting'];             
                 $ads      = $_POST['advertising'];             
@@ -363,13 +415,14 @@
                                         SET 
                                             Name = ?, 
                                             Description = ?, 
-                                            Ordering = ?, 
+                                            Ordering = ?,
+                                            Parent = ?, 
                                             Visibility = ?, 
                                             Allow_Comment = ?, 
                                             Allow_Ads = ? 
                                         WHERE 
                                             ID = ?");
-                $stmt->execute(array($name, $desc, $order, $visible, $comment, $ads, $id));
+                $stmt->execute(array($name, $desc, $order, $parent, $visible, $comment, $ads, $id));
 
                 // Echo success Message
                 $theMsg = "<div class='alert alert-success'>" . $stmt->rowCount() . ' Record UPDATED</div>';

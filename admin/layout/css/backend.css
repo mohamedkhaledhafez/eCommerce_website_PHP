@@ -5,11 +5,23 @@ body {
   font-size: 16px;
 }
 
+.col-sm-10 {
+  position: relative;
+}
+
 .asterisk {
   position: absolute;
   font-size: 30px;
   right: 30px;
   top: 10px;
+  color: #d20707;
+}
+
+.col-sm-10 .asterisk {
+  position: absolute;
+  font-size: 30px;
+  right: 10px;
+  top: 0px;
   color: #d20707;
 }
 
@@ -169,6 +181,20 @@ body {
   background-color: #032539;
 }
 
+.home-stats .st-members:hover,
+.home-stats .st-pending:hover,
+.home-stats .st-items:hover,
+.home-stats .st-comments:hover {
+  cursor: pointer;
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.4);
+  transform: translateY(-1rem);
+  -webkit-transform: translateY(-1rem);
+  -moz-transform: translateY(-1rem);
+  -ms-transform: translateY(-1rem);
+  -o-transform: translateY(-1rem);
+  transition: 400ms all ease-in-out;
+}
+
 .latest {
   margin-top: 25px;
 }
@@ -263,6 +289,12 @@ h1 {
   right: 777px;
 }
 
+.manage-members img,
+.manage-items img {
+  width: 50px;
+  height: 50px;
+}
+
 .main-table {
   -webkit-box-shadow: 0 3px 10px #ccc;
   -moz-box-shadow: 0 3px 10px #ccc;
@@ -278,10 +310,15 @@ h1 {
   background-color: #333;
   color: #fff;
   text-align: center;
+  width: 7px;
+}
+
+.main-table tr:last-child td {
+  width: 300px;
 }
 
 .main-table .btn {
-  padding: 3px 10px;
+  padding: 2px 5px;
 }
 
 .main-table .btn-primary {
@@ -429,4 +466,36 @@ h1 {
   margin-bottom: 20px;
   margin-top: 10px;
 }
+
+.categories .child-head {
+  margin: 15px 0 8px;
+  font-weight: bold;
+  font-size: 16px;
+  color: #198754;
+}
+
+.categories .child-cats {
+  margin: 0;
+}
+
+.categories .child-cats li {
+  margin-left: 10px;
+}
+
+.categories .child-cats li::before {
+  content: "*";
+}
+
+.categories .show-delete {
+  background-color: #f00;
+  color: #fff;
+  display: none;
+}
+
 /* End Category Page */
+
+/*///////////////////////////// Members /////////////////////////*/
+.user_avatar {
+  height: auto;
+  width: 100%;
+}
