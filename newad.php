@@ -193,7 +193,7 @@
                             <!--start Submit Field-->
                             <div class="form-group  form-group-lg">
                                 <div class="col-sm-offset-3 col-sm-9">
-                                    <input type="submit" value="Add Item" class="btn btn-primary btn-sm" />
+                                    <input type="submit" value="Add Item" class="btn btn-primary btn-sm add-item" />
                                 </div>
                             </div>
                             <!--End Submit Field-->

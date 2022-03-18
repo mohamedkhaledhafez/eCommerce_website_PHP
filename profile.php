@@ -13,48 +13,49 @@
 
 <h1 class="text-center"><?php echo $_SESSION['user']; ?> Profile</h1>
 
-<div class="informations block">
-    <div class="container">
-        <div class="panel panel-primary">
-            <div class="panel-heading">My Information</div>
-            <div class="panel-body">
-                <ul class="list-unstyled">
-                    <li>
-                        <i class="fa fa-unlock-alt fa-fw"></i>
-                        <span>Login Name</span> : <?php echo $info['UserName'] ?>
-                    </li>
-                    <li>
-                        <i class="fa fa-user fa-fw"></i>
-                        <span>Full Name</span> : <?php echo $info['FullName'] ?>
-                    </li>
-                    <li>
-                        <i class="fa fa-envelope-o fa-fw"></i>
-                        <span>Email</span> : <?php echo $info['Email'] ?>
-                    </li>
-                    <li>
-                        <i class="fa fa-calendar fa-fw"></i>
-                        <span>Register Date</span> : <?php echo $info['Date'] ?>
-                    </li>
-                    <li>
-                        <i class="fa fa-tags fa-fw"></i>
-                        <span>Fav Categories</span> :
-                    </li>
-                    <li>
-                        <i class="fa fa-tags fa-fw"></i>
-                        <span>User Image</span> : 
-                        <?php 
-                            if (! empty($info['avatar'])) {
-                                echo "<img class='user_avatar' src='admin/uploads/avatars/" . $info['avatar'] . "' alt='' />"; 
-                            } else {
-                                echo "<img class='user_avatar' src='man.png' alt='' />";
-                            }
-                        ?>
-                    </li>
-                </ul>
-                <a href="" class="btn btn-success">Edit Information</a>
+<div class="info-content container">
+    <div class="informations">
+        <div class="container">
+            <div class="panel panel-primary">
+                <div class="panel-heading">My Information</div>
+                <div class="panel-body">
+                    <ul class="list-unstyled">
+                        <li>
+                            <i class="fa fa-unlock-alt fa-fw"></i>
+                            <span>Login Name</span> : <?php echo $info['UserName'] ?>
+                        </li>
+                        <li>
+                            <i class="fa fa-user fa-fw"></i>
+                            <span>Full Name</span> : <?php echo $info['FullName'] ?>
+                        </li>
+                        <li>
+                            <i class="fa fa-envelope-o fa-fw"></i>
+                            <span>Email</span> : <?php echo $info['Email'] ?>
+                        </li>
+                        <li>
+                            <i class="fa fa-calendar fa-fw"></i>
+                            <span>Register Date</span> : <?php echo $info['Date'] ?>
+                        </li>
+                        <li>
+                            <i class="fa fa-tags fa-fw"></i>
+                            <span>Fav Categories</span> :
+                        </li>
+                        
+                    </ul>
+                    <a href="" class="btn btn-success">Edit Information</a>
+                </div>
+    
             </div>
-
         </div>
+    </div>
+    <div class="user-image">
+    <?php 
+        if (! empty($info['avatar'])) {
+            echo "<img class='user_avatar' src='admin/uploads/avatars/" . $info['avatar'] . "' alt='' />"; 
+        } else {
+            echo "<img class='user_avatar' src='man.png' alt='' />";
+        }
+    ?>
     </div>
 </div>
 <div id="ads" class="ads block">

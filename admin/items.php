@@ -78,7 +78,7 @@ if (isset($_SESSION['Username'])) {
                             echo "<td>" . $item['Add_Date'] . "</td>";
                             echo "<td>" . $item['category_name'] . "</td>";
                             echo "<td>" . $item['UserName'] . "</td>";
-                            echo "<td>
+                            echo "<td class='control-tr'>
                                     <a href='items.php?do=Edit&itemid=" . $item['item_ID'] . "' class='btn btn-success'><i class='fa fa-edit'></i> Edit</a>
                                     <a href='items.php?do=Delete&itemid=" . $item['item_ID'] . "' class='btn btn-danger confirm'><i class='fa fa-close'></i> Delete</a>";
                                     if ($item['Approve'] == 0) {
@@ -103,7 +103,7 @@ if (isset($_SESSION['Username'])) {
         
     <?php
 
-    } elseif ($do == 'Add') { //////////////////////////////////////// Add Member Page ?> 
+    } elseif ($do == 'Add') { //////////////////////////////////////// Add Item Page ?> 
         <h1 class="text-center">Add New Item</h1>
         <div class="container">
             <form class="form-horizontal" action="?do=Insert" method="POST">
@@ -243,7 +243,7 @@ if (isset($_SESSION['Username'])) {
             $avatarSize = $_FILES['avatar']['size'];
             $avatarTmp = $_FILES['avatar']['tmp_name'];
             $avatarType = $_FILES['avatar']['type'];
-
+            
             // List of allowed file type to upload
             $avatarAllowedExtension = array("jpeg", "jpg", "png", "gif");
 
@@ -260,7 +260,7 @@ if (isset($_SESSION['Username'])) {
             $member   = $_POST['member'];
             $cat      = $_POST['category'];
             $tags      = $_POST['tags'];
-
+            
             // Validate the Form
             $formErrors = array();
             
@@ -502,7 +502,7 @@ if (isset($_SESSION['Username'])) {
                     <!--start Submit Field-->
                     <div class="form-group  form-group-lg">
                         <div class="col-sm-offset-2 col-sm-10">
-                            <input type="submit" value="Save Item" class="btn btn-primary btn-sm" />
+                            <input type="submit" value="Save Item" class="btn btn-primary btn-sm add-item" />
                         </div>
                     </div>
                     <!--End Submit Field-->

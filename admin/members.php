@@ -67,7 +67,7 @@ if (isset($_SESSION['Username'])) {
                             echo "<td>" . $row['Email'] . "</td>";
                             echo "<td>" . $row['FullName'] . "</td>";
                             echo "<td>" . $row['Date'] . "</td>";
-                            echo "<td>
+                            echo "<td class='control-tr'>
                                     <a href='members.php?do=Edit&userId=" . $row['UserID'] . "' class='btn btn-success'><i class='fa fa-edit'></i> Edit</a>
                                     <a href='members.php?do=Delete&userId=" . $row['UserID'] . "' class='btn btn-danger confirm'><i class='fa fa-close'></i> Delete</a>";
                                     if ($row['RegisterStatus'] == 0) {
@@ -146,7 +146,7 @@ if (isset($_SESSION['Username'])) {
                     <!--start Submit Field-->
                     <div class="form-group  form-group-lg">
                         <div class="col-sm-offset-2 col-sm-10">
-                            <input type="submit" value="Add Member" class="btn btn-primary btn-lg" />
+                            <input type="submit" value="Add Member" class="btn btn-primary btn-lg  add-item" />
                         </div>
                     </div>
                     <!--End Submit Field-->
@@ -233,7 +233,7 @@ if (isset($_SESSION['Username'])) {
 
                 $avatar = rand(0, 10000) . '_' . $avatarName;
 
-                move_uploaded_file($avatarTmp, "uploads/avatars/" . $avatar);
+                move_uploaded_file($avatarTmp, "uploads\avatars\\" . $avatar);
             
                 // Check if user is exist in Database
                 $check = checkItem("UserName", "users", $user);
@@ -246,7 +246,7 @@ if (isset($_SESSION['Username'])) {
                     // Insert user informations to database
                     $stmt = $con->prepare("INSERT INTO 
                                             users(UserName, Password, Email, FullName, RegisterStatus, Date, avatar)
-                                            VALUES(:muser, :mpass, :mmail, :mfull, 1, now(), :mavatar) ");
+                                            VALUES(:muser, :mpass, :mmail, :mfull, 0, now(), :mavatar) ");
 
                     $stmt->execute(array(
                         'muser' => $user,
@@ -337,7 +337,7 @@ if (isset($_SESSION['Username'])) {
                         <!--End FullName Field-->
 
                         <!--start Profile Image Field-->
-                        <div class="form-group  form-group-lg">
+                        <div class="form-group  form-group-lg ">
                             <label class="col-sm-2 control-label">User Image</label>
                             <div class="col-sm-10 col-md-6">
                                 <input type="file" name="avatar" value="<?php echo $row['avatar'] ?>" class="form-control"/>
@@ -348,7 +348,7 @@ if (isset($_SESSION['Username'])) {
                         <!--start Submit Field-->
                         <div class="form-group  form-group-lg">
                             <div class="col-sm-offset-2 col-sm-10">
-                                <input type="submit" value="Save" class="btn btn-primary btn-lg" />
+                                <input type="submit" value="Save" class="btn btn-primary btn-lg add-item" />
                             </div>
                         </div>
                         <!--End Submit Field-->
@@ -475,7 +475,7 @@ if (isset($_SESSION['Username'])) {
 
         } else {
 
-            $theMsg = '<div class="alert alert-danger">SORRY, YOU CANT EDIT THIS PAGE DIRECTLY WITHOUT POST METHOD</div>';
+            $theMsg = '<div class="alert alert-danger">SORRY, YOU CAN\'T EDIT THIS PAGE DIRECTLY WITHOUT POST METHOD</div>';
 
             redirectHome($theMsg);
         }

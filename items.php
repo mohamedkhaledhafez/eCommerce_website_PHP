@@ -44,7 +44,7 @@
 <div class="container">
     <div class="row">
         <div class="col-md-3">
-            <img class="img-responsive img-thumbnail center-block" src="" alt="item-image">
+            <img class="item-image img-responsive  center-block" src="./admin/uploads/avatars/<?php echo $item['avatar'] ?>" alt= "item-image">
         </div>
         <div class="col-md-9 item-info">
             <h2><?php echo $item['Name'] ?></h2>
@@ -180,14 +180,14 @@
             echo '<div class="alert alert-danger">There is no such id OR this item is waiting for approval</div>';
         echo '</div>';
     }
-    echo '<div class="col-md-9 item-info">';
+    echo '<div class="col-md-9 item-info container">';
         echo '<h2>Related Items</h2>';
         $itemsTag = getAllFrom('*', 'items', "WHERE tags like '%$tag%'", 'AND Approve = 1', 'item_ID');
         foreach ($itemsTag as $item) {
             echo '<div class="col-sm-6 col-md-3">';
                 echo '<div class="thumbnail item-box">';
                     echo '<span class="price">$' . $item['Price'] . '</span>';
-                    echo '<img class="img-responsive" src="man.png" alt="item-image">';
+                    echo '<img class="item-image img-responsive" src="./admin/uploads/avatars/' . $item['avatar'] .'" alt="item-image">';
                     echo '<div class="caption">';
                         echo '<h3><a href="items.php?itemid='. $item['item_ID'] .'" target="_blank">' . $item['Name'] . '</a></h3>';
                         echo '<p>' . $item['Description'] . '</p>';
