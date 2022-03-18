@@ -180,7 +180,7 @@
             echo '<div class="alert alert-danger">There is no such id OR this item is waiting for approval</div>';
         echo '</div>';
     }
-    echo '<div class="col-md-9 item-info container">';
+    echo '<div class="row item-info container">';
         echo '<h2>Related Items</h2>';
         $itemsTag = getAllFrom('*', 'items', "WHERE tags like '%$tag%'", 'AND Approve = 1', 'item_ID');
         foreach ($itemsTag as $item) {

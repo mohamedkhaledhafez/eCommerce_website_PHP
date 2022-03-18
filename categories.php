@@ -12,7 +12,7 @@
                 echo '<div class="col-sm-6 col-md-3">';
                     echo '<div class="thumbnail item-box">';
                         echo '<span class="price">$' . $item['Price'] . '</span>';
-                        echo '<img class="img-responsive" src="man.png" alt="item-image">';
+                        echo '<img class="item-image img-responsive" src="./admin/uploads/avatars/' . $item['avatar'] .'" alt="item-image">';
                         echo '<div class="caption">';
                             echo '<h3><a href="items.php?itemid='. $item['item_ID'] .'" target="_blank">' . $item['Name'] . '</a></h3>';
                             echo '<p>' . $item['Description'] . '</p>';
